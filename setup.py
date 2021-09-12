@@ -34,6 +34,10 @@ setup(
     install_requires=['matplotlib', 'cellsolver'],
     entry_points={
         'console_scripts': ['cellsolver-multi-process=cellsolvertools.multi_processing_script:main',
-                            'cellsolver-sensitivity-plot=cellsolvertools.multi_trial_plot:main'],
+                            'cellsolver-sensitivity-plot=cellsolvertools.multi_trial_plot:main',
+                            'simple-sundials-solver-manager=cellsolvertools.simple_sundials_solver_manager:main',
+                            'define-parameter-uncertainties=cellsolvertools.define_parameter_uncertainties:main',
+                            'simulate-sbml-model=cellsolvertools.simulate_sbml_model:main',
+                            ],
     }
 )
