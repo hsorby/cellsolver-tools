@@ -15,6 +15,10 @@ def run_simulation(output_file_name, model, external_variables_module, config):
                     "--ext-var", external_variables_module])
 
 
+def run_simple_sundials_solver():
+    pass
+
+
 def process_arguments():
     parser = argparse.ArgumentParser(description="Solve ODE's described by libCellML generated Python output in a multi-process way.")
     parser.add_argument('--trials', default=10, type=int,

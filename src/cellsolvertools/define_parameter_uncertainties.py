@@ -1,3 +1,21 @@
+"""
+Encode parameter uncertainties in an SBML-distrib way.
+
+Taking a JSON description of a distribution enocde this information
+into an SBML model using the SBML distribution extension.
+
+The JSON description is defined by a parameter name as the key for
+a dictionary with keys ['distribution', 'p1', 'p2', 'p3', 'p4'].
+Only the parameters required for the named distribution are required.
+
+Example JSON description:
+
+  {
+    "dimensions.l": {"distribution": "normal", "p1": 6, "p2": 0.5},
+    "dimensions.r": {"distribution": "normal", "p1": 2, "p2": 3}
+  }
+
+"""
 import argparse
 import json
 import os
@@ -38,6 +56,16 @@ def process_arguments():
     return parser
 
 
+def create_model_from_config(config):
+    model = create_template_model()
+    for parameter in config:
+        add_model_parameter(model, parameter, config[parameter])
+
+    core_model = CoreModel.from_dict(model_dict=model)
+
+    return core_model.get_sbml()
+
+
 def main():
     parser = process_arguments()
     args = parser.parse_args()
@@ -51,13 +79,8 @@ def main():
     except json.JSONDecodeError:
         sys.exit(2)
 
-    model = create_template_model()
-    for parameter in config:
-        add_model_parameter(model, parameter, config[parameter])
-
-    core_model = CoreModel.from_dict(model_dict=model)
-
-    print(core_model.get_sbml())
+    sbml_xml_model = create_model_from_config(config)
+    print(sbml_xml_model)
 
 
 if __name__ == '__main__':
