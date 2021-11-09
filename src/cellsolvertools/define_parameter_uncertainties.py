@@ -43,10 +43,17 @@ def create_template_model():
     return model_dict
 
 
+def _sort_parameter_values_key(item):
+    return item[0]
+
+
 def add_model_parameter(model, parameter_name, parameter_values):
     modified_name = parameter_name.replace('.', '__')
     model['parameters'].append(Parameter(modified_name, value=parameter_values["p1"], unit=UNIT_KIND_DIMENSIONLESS))
-    model['assignments'].append(InitialAssignment(modified_name, f'{parameter_values["distribution"]}({parameter_values["p1"]}, {parameter_values["p2"]})'))
+    values = [(k, v) for k, v in parameter_values.items() if k.startswith('p')]
+    sorted_values = sorted(values, key=_sort_parameter_values_key)
+    parameters = ', '.join([str(v[1]) for v in sorted_values])
+    model['assignments'].append(InitialAssignment(modified_name, f'{parameter_values["distribution"]}({parameters})'))
 
 
 def process_arguments():

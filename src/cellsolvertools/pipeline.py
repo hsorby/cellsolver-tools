@@ -5,46 +5,10 @@ import os
 import shutil
 import sys
 
-from xml.etree import ElementTree
-import zipfile
-
-from zipfile import ZipFile
-
-from cellsolvertools.define_parameter_uncertainties import create_model_from_config
-from cellsolvertools.evaluate_sbml_model_initial_values import evaluate_model
+from cellsolvertools.common import construct_application_config
 from cellsolvertools.generate_code import generate_c_code
 from cellsolvertools.simple_sundials_solver_manager import entry_point
-
-
-def is_omex_file(filename):
-    try:
-        with ZipFile(filename) as omex_zip:
-            info_list = omex_zip.infolist()
-            for info in info_list:
-                print(info)
-    except FileNotFoundError:
-        return False
-    except IsADirectoryError:
-        return False
-    except zipfile.BadZipfile:
-        return False
-
-    return False
-
-
-def is_cellml_file(filename):
-    try:
-        my_namespaces = dict([node for _, node in ElementTree.iterparse(filename, events=['start-ns'])])
-
-        for ns in my_namespaces:
-            if my_namespaces[ns] == 'http://www.cellml.org/cellml/2.0#':
-                return True
-    except IsADirectoryError:
-        return False
-    except ElementTree.ParseError:
-        return False
-
-    return False
+from cellsolvertools.utilities import is_omex_file, is_cellml_file
 
 
 def check_simulation_dir():
@@ -84,7 +48,7 @@ def process_arguments():
     parser.add_argument('model', help='model to simulate, this can be either an OMEX archive or a CellML model file.  '
                                       'If the model parameter is a CellML model file then a config file is also required for sensitivity analysis.')
     parser.add_argument('--config',
-                        help='the configuration for the model, not required if not doing sensivity analysis or the model input is an OMEX file.')
+                        help='the configuration for the model, not required if not doing sensitivity analysis or the model input is an OMEX file.')
     parser.add_argument('--workers', default=multiprocessing.cpu_count(), type=int,
                         help='number of workers to use (default: CPU count)')
 
@@ -119,17 +83,13 @@ def main():
         code_generation_config = {}
         if 'uncertainties' in config:
             code_generation_config['external_variables'] = config['uncertainties']
+
         generate_c_code(args.model, os.path.join(os.environ['SIMULATION_DIR'], 'build-simple-sundials-solver', 'src'), code_generation_config)
 
-        # Compile application
-        build_dir = os.path.join(os.environ['SIMULATION_DIR'], 'build-simple-sundials-solver')
-        src_dir = os.path.join(os.environ['SIMULATION_DIR'], 'simple-sundials-solver')
-        config['simulation_dir'] = os.environ['SIMULATION_DIR']
-        config['build_dir'] = build_dir
-        config['src_dir'] = src_dir
-        config['sundials_dir'] = os.environ['SIMULATION_SUNDIALS_DIR']
-        config['application'] = os.path.join(build_dir, 'src', 'siss')
+        config['application'] = construct_application_config(os.environ['SIMULATION_DIR'], os.environ['SIMULATION_SUNDIALS_DIR'])
         config['workers'] = args.workers
+
+        # Compile application
         entry_point(config)
     else:
         sys.exit(2)

@@ -31,7 +31,7 @@ setup(
     author='Hugh Sorby',
     author_email='h.sorby@auckland.ac.nz',
     description='A collection of scripts to enhance the usage of Cell Solver.',
-    install_requires=['matplotlib', 'cellsolver', 'libcellml'],
+    install_requires=['matplotlib', 'cellsolver', 'libcellml', 'pandas', 'plotly'],
     entry_points={
         'console_scripts': ['cellsolver-multi-process=cellsolvertools.multi_processing_script:main',
                             'cellsolver-sensitivity-plot=cellsolvertools.multi_trial_plot:main',

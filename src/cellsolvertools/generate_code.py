@@ -16,6 +16,40 @@ ModelValidationError = ModelParseError
 ModelAnalysisError = ModelParseError
 
 
+def return_generated_python_code(model_location):
+    p = Parser()
+
+    with open(model_location) as f:
+        contents = f.read()
+
+    m = p.parseModel(contents)
+
+    if p.errorCount() > 0:
+        raise ModelParseError(f'Parsed model has {p.errorCount()} error(s).')
+
+    val = Validator()
+    val.validateModel(m)
+
+    if val.errorCount() > 0:
+        raise ModelValidationError(f'Validated model has {val.errorCount()} error(s).')
+
+    profile = GeneratorProfile(GeneratorProfile.Profile.PYTHON)
+
+    g = Generator()
+    g.setProfile(profile)
+
+    a = Analyser()
+    a.analyseModel(m)
+
+    if a.errorCount() > 0:
+        raise ModelAnalysisError(f'Model analysis came back with {a.errorCount()} error(s).')
+
+    am = a.model()
+    g.setModel(am)
+
+    return g.implementationCode()
+
+
 def generate_c_code(model_location, output_location, config=None):
     p = Parser()
 
